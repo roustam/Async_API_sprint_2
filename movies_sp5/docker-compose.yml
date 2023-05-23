@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  movies_app:
+    build: ./movies_app
+    container_name: movies_app
+    depends_on:
+      - movies_redis
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - ELASTIC_HOST=${ES_HOST}
+      - ELASTIC_PORT=${ES_PORT}
+    ports:
+      - "80:80"
+    volumes:
+      - ./movies_app:/opt/app
+
+  movies_db:
+    build: ./movies_db
+    container_name: movies_db
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./movies_db/postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  movies_elastic:
+    build: ./movies_elastic
+    container_name: movies_es
+    environment:
+      discovery.type: "single-node"
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms4g -Xmx4g"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./movies_elastic/esdata:/usr/share/elasticsearch/data
+
+  etl:
+    build: ./postgres_to_es
+    container_name: movies_etl
+    environment:
+      db_name: ${DB_NAME}
+      db_user: ${DB_USER}
+      db_password: ${DB_PASSWORD}
+      db_host: ${DB_HOST}
+      db_port: ${DB_PORT}
+      extract_chunk_size: ${EXTRACT_CHUNK_SIZE}
+      load_chunk_size: ${LOAD_CHUNK_SIZE}
+      es_host: ${ES_HOST}
+      es_port: ${ES_PORT}
+    depends_on:
+      movies_db:
+        condition: service_healthy
+
+  movies_redis:
+    build: ./movies_redis
+    container_name: movies_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./movies_redis/redis.conf:/usr/local/etc/redis/redis.conf
