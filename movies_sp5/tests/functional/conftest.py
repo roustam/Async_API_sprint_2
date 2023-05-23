@@ -1,14 +1,15 @@
 import asyncio
-import datetime
 import uuid
 import aiohttp
 from elasticsearch import AsyncElasticsearch
 import pytest
 import pytest_asyncio
+from redis.asyncio import Redis
 
-from settings import elastic_settings
-from settings import app_settings
-from utils.helpers import get_es_bulk_query
+from .settings import elastic_settings
+from .settings import app_settings
+from .settings import redis_settings
+from .utils.helpers import get_es_bulk_query
 
 
 @pytest.fixture(scope="session")
@@ -30,34 +31,41 @@ async def es_client():
 
 
 @pytest_asyncio.fixture(scope='session')
+async def redis_client():
+    client = Redis(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
+    yield client
+    await client.close()
+
+
+@pytest_asyncio.fixture(scope='session')
 async def session():
     session = aiohttp.ClientSession()
     yield session
     await session.close()
 
 
-@pytest.fixture
-def es_write_data(es_client: AsyncElasticsearch):
+@pytest_asyncio.fixture
+async def es_write_data(es_client: AsyncElasticsearch):
     async def inner(data: list[dict], index: str, id_field: str):
         bulk_query = get_es_bulk_query(data, index, id_field)
         str_query = '\n'.join(bulk_query) + '\n'
         response = await es_client.bulk(str_query, refresh=True)
         if response['errors']:
             raise Exception('Ошибка записи данных в Elasticsearch')
-    return inner
+    yield inner
+    await es_client.delete_by_query('_all', body={"query": {"match_all": {}}})
 
 
-@pytest.fixture
-def make_get_request(session: aiohttp.ClientSession):
-    async def inner(handler: str, data: dict):
+@pytest_asyncio.fixture
+async def make_get_request(session: aiohttp.ClientSession, redis_client: Redis):
+    async def inner(handler: str, data: dict = None):
         async with session.get(f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler, params=data) as response:
-            status = response.status
-            if status == 200:
-                body = await response.json()
+            if response.status == 200:
+                return await response.json()
             else:
                 raise Exception(response)
-            return status, body 
-    return inner
+    yield inner
+    await redis_client.flushdb()
 
 
 @pytest.fixture
@@ -93,5 +101,5 @@ def es_data():
                 {'id': '555', 'name': 'Alise'},
                 {'id': '666', 'name': 'John'}
             ],
-        } for _ in range(60)
+        } for _ in range(15)
     ]
