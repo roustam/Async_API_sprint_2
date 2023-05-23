@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  movies_app:
+    build: ./../../movies_app
+    image: movies-app-image
+    container_name: movies_app_tests
+    depends_on:
+      - movies_redis
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - ELASTIC_HOST=${ES_HOST}
+      - ELASTIC_PORT=${ES_PORT}
+    volumes:
+      - ./../../movies_app:/opt/app
+    ports:
+      - "80:80"
+
+  movies_elastic:
+    build: ./../../movies_elastic
+    container_name: movies_es_tests
+    environment:
+      discovery.type: "single-node"
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms4g -Xmx4g"
+    volumes:
+      - ./../../movies_elastic/esdata_tests:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+
+  movies_redis:
+    build: ./../../movies_redis
+    container_name: movies_redis_tests
+    volumes:
+      - ./../../movies_redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+
+  tests:
+    image: movies-app-image
+    container_name: movies_tests
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - ELASTIC_HOST=${ES_HOST}
+      - ELASTIC_PORT=${ES_PORT}
+      - APP_HOST=${APP_HOST}
+      - APP_PORT=${APP_PORT}
+    volumes:
+      - ./.:/tests/functional/
+    entrypoint: >
+      sh -c "pip install -r /tests/functional/requirements.txt
+      && export PYTHONPATH=$PYTHONPATH:/tests/functional
+      && python3 /tests/functional/utils/wait_for_es.py
+      && python3 /tests/functional/utils/wait_for_redis.py
+      && pytest /tests/functional/src"
