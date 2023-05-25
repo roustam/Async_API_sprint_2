@@ -8,9 +8,7 @@ from redis.asyncio import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.genre import Genre
-from services.common import make_redis_key
-
-GENRE_CACHE_EXPIRE_IN_SEC = 60 * 5  # 5 минут
+from services.common import make_redis_key, CACHE_EXPIRE_IN_SECONDS
 
 
 class GenreService:
@@ -18,7 +16,7 @@ class GenreService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_genres(self, page: int, size: int) -> tuple[list[Genre], int]:
+    async def get(self, page: int, size: int) -> tuple[list[Genre], int]:
         genres_total = await self._get_genres_from_cache(page, size)
 
         if genres_total is None:
@@ -75,7 +73,7 @@ class GenreService:
         genres, total = response
         genres_data = [{"id": genre.id, "name": genre.name} for genre in genres]
         data = {"genres": genres_data, "count": total}
-        await self.redis.set(cache_key, json.dumps(data), ex=GENRE_CACHE_EXPIRE_IN_SEC)
+        await self.redis.set(cache_key, json.dumps(data), ex=CACHE_EXPIRE_IN_SECONDS)
 
     async def get_by_id(self, genre_id: str) -> Genre | None:
         genre = await self._get_genre_from_cache(genre_id)
@@ -109,7 +107,7 @@ class GenreService:
 
     async def _put_genre_to_cache(self, genre: Genre):
         cache_key = make_redis_key('genre', genre.id)
-        await self.redis.set(cache_key, genre.json(), ex=GENRE_CACHE_EXPIRE_IN_SEC)
+        await self.redis.set(cache_key, genre.json(), ex=CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()

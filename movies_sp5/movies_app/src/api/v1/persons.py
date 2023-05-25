@@ -1,101 +1,112 @@
 from http import HTTPStatus
-from typing import Generic, TypeVar, Any
+from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException, Query
 from pydantic import UUID4, BaseModel
 from api.v1.messages import PERSON_NOT_FOUND
 
-from models.page import PageRequest
+from api.v1.common import Page, router
+
 from services.person import PersonService, get_person_service
 
-router = APIRouter()
 
-T = TypeVar("T")
-
-
-class Page(Generic[T], BaseModel):
-    page: int
-    size: int
-    items: list[T]
-
-
-class PersonDetailsFilm(BaseModel):
-    id: UUID4
+class PersonFilm(BaseModel):
+    uuid: UUID4
     roles: list[str]
 
 
-class PersonDetails(BaseModel):
+class Person(BaseModel):
     uuid: UUID4
     full_name: str
-    films: list[PersonDetailsFilm]
+    films: list[PersonFilm]
 
 
-class PersonDetailsSearch(BaseModel):
-    uuid: UUID4
-    full_name: str
-    movies: list[Any]
-
-
-class FilmPerson(BaseModel):
+class PersonFilmDetails(BaseModel):
     uuid: UUID4
     title: str
-    imdb_dating: float
+    imdb_rating: float
 
 
-@router.get("/search", response_model=Page[PersonDetailsSearch],
-            summary='Searching persons by string query',
-            description='Returns persons with list of films in which '
-                        'production they participated')
-async def search_person_name(
-        query: str,
-        page_request: PageRequest = Depends(),
-        person_service: PersonService = Depends(get_person_service)
+@router.get(
+    "/search",
+    response_model=Page[Person],
+    summary='Searching persons by string query',
+    description='Returns persons with list of films in which production they participated'
+)
+async def search_persons(
+    query: str,
+    page_number: Annotated[int, Query(description='Pagination page number', ge=1)] = 1,
+    page_size: Annotated[int, Query(description='Pagination page size', ge=1)] = 10,
+    person_service: PersonService = Depends(get_person_service),
 ):
-    page, size = page_request.page, page_request.size
-    set_of_person_films = await person_service.get_persons_with_films(
-        query, page, size
-    )
-    return Page[PersonDetailsSearch](
+    persons = await person_service.search(query, page_number=page_number, page_size=page_size)
+
+    return Page[Person](
         items=[
-            PersonDetailsSearch(
-                uuid=UUID4(person.id),
+            Person(
+                uuid=UUID(person.id),
                 full_name=person.full_name,
-                movies=person.movies
+                films=[
+                    PersonFilm(uuid=UUID(movie.id), roles=movie.roles)
+                    for movie in person.movies
+                ],
             )
-            for person in set_of_person_films
+            for person in persons
         ],
-        page=page,
-        size=size,
+        page=page_number,
+        size=page_size,
     )
 
 
 @router.get(
     "/{person_id}",
+    response_model=Person,
     summary='Get person by id',
-    description='Returns person with specified id'
+    description='Returns person with specified id',
 )
-async def person_details(
+async def person(
     person_id: UUID4,
     person_service: PersonService = Depends(get_person_service),
-) -> PersonDetails:
+):
     person = await person_service.get_by_id(person_id)
+
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=PERSON_NOT_FOUND)
 
-    return PersonDetails(
-        uuid=person.id, full_name=person.full_name, films=person.movies
+    return Person(
+        uuid=UUID(person.id),
+        full_name=person.full_name,
+        films=[
+            PersonFilm(uuid=UUID(movie.id), roles=movie.roles)
+            for movie in person.movies
+        ],
     )
 
 
 @router.get(
     "/{person_id}/film",
+    response_model=Page[PersonFilmDetails],
     summary='Get person\'s films',
-    description='Returns films with specified person'
+    description='Returns films with specified person',
 )
-async def person_details_film(
+async def person_films_details(
     person_id: UUID4,
+    page_number: Annotated[int, Query(description='Pagination page number', ge=1)] = 1,
+    page_size: Annotated[int, Query(description='Pagination page size', ge=1)] = 10,
     person_service: PersonService = Depends(get_person_service),
 ):
-    person_film = await person_service.get_film_for_person_by_id(person_id)
+    films = await person_service.get_films_by_person_id(person_id, page_number=page_number, page_size=page_size)
 
-    return person_film
+    return Page[PersonFilmDetails](
+        items=[
+            PersonFilmDetails(
+                uuid=UUID(film.id),
+                title=film.title,
+                imdb_rating=film.imdb_rating,
+            )
+            for film in films
+        ],
+        page=page_number,
+        size=page_size,
+    )

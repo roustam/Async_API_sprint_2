@@ -8,9 +8,7 @@ from redis.asyncio import Redis
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.film import Film
-from services.common import make_redis_key
-
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
+from services.common import make_redis_key, CACHE_EXPIRE_IN_SECONDS
 
 
 class FilmService:
@@ -47,7 +45,7 @@ class FilmService:
         return orjson.loads(films) if films else None
         
     async def _save_films_to_cache(self, key, films):
-        await self.redis.set(key, orjson.dumps(films).decode(), FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(key, orjson.dumps(films).decode(), CACHE_EXPIRE_IN_SECONDS)
 
     async def _get_film_from_elastic(self, film_id: str) -> Film | None:
         try:
