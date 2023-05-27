@@ -2,12 +2,15 @@ from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import UUID4, BaseModel
 from api.v1.messages import FILM_NOT_FOUND
-from api.v1.common import Page, router
+from api.v1.common import Page
 
 from services.film import FilmService, get_film_service
+
+
+router = APIRouter()
 
 
 class FilmGenre(BaseModel):

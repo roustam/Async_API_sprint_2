@@ -9,9 +9,6 @@ from fastapi import Query
 from models.base import BaseOrjsonModel
 
 
-router = APIRouter()
-
-
 class PageRequest(BaseOrjsonModel):
     page_number: Annotated[int, Query(description='Pagination page number', ge=1)] = 1
     page_size: Annotated[int, Query(description='Pagination page size', ge=1)] = 10
