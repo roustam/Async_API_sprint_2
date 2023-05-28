@@ -53,7 +53,12 @@ async def es_write_data(es_client: AsyncElasticsearch):
         if response['errors']:
             raise Exception('Ошибка записи данных в Elasticsearch')
     yield inner
-    # await es_client.delete_by_query('_all', body={"query": {"match_all": {}}})
+    await es_client.delete_by_query('_all', body={"query": {"match_all": {}}})
+
+@pytest_asyncio.fixture
+async def es_add_bulk_data(es_client: AsyncElasticsearch):
+    async def inner(index: str, qu: list[dict]):
+        response = await es_client.bulk(index=index, query=bulk_query)
 
 
 @pytest_asyncio.fixture

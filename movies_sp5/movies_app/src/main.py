@@ -32,7 +32,7 @@ async def startup():
     es_settings = ElasticSettings()
     redis.redis = Redis(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
     elastic.es = AsyncElasticsearch(
-        hosts=[f"{es_settings.ELASTIC_HOST}:{es_settings.ELASTIC_PORT}"]
+        hosts=[f"http://{es_settings.ELASTIC_HOST}:{es_settings.ELASTIC_PORT}"]
     )
 
 

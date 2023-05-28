@@ -41,11 +41,11 @@ class PersonService(ServiceAbstract):
         return orjson.loads(persons) if persons else None
         
     async def _save_persons_to_cache(self, key, persons):
-        await self.redis.set(key, orjson.dumps(persons).decode(), CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(key, orjson.dumps(persons.body).decode(), CACHE_EXPIRE_IN_SECONDS)
 
     async def _get_person_from_elastic(self, person_id: str) -> dict | None:
         try:
-            return await self.elastic.get('persons', person_id)
+            return await self.elastic.get(index='persons', id=person_id)
         except NotFoundError:
             return None
 
@@ -85,7 +85,8 @@ class PersonService(ServiceAbstract):
             },
         )
 
-    async def _search_persons_in_elastic(self, query: str, page_number: int | None = 1, page_size: int | None = 10) -> dict:
+    async def _search_persons_in_elastic(self, query: str,
+                                         page_number: int | None = 1, page_size: int | None = 10) -> dict:
         return await self.elastic.search(
             index='persons',
             body={
