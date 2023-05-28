@@ -36,6 +36,7 @@ venv/
 
 # Global excludes across all subdirectories
 *.o
+*.bak
 *.obj
 *.bc
 *.so
