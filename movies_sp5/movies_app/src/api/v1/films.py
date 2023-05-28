@@ -1,24 +1,16 @@
 from http import HTTPStatus
-from typing import Annotated, Generic, TypeVar
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import UUID4, BaseModel
 from api.v1.messages import FILM_NOT_FOUND
+from api.v1.common import Page
 
 from services.film import FilmService, get_film_service
 
 
 router = APIRouter()
-
-
-T = TypeVar("T")
-
-
-class Page(Generic[T], BaseModel):
-    page: int
-    size: int
-    items: list[T]
 
 
 class FilmGenre(BaseModel):
@@ -62,9 +54,10 @@ async def films(
     genre parameter takes genre id
     """
     films = await film_service.get(sort=sort, genre_id=genre, page_number=page_number, page_size=page_size)
-    return Page(
+
+    return Page[Film](
         items=[
-            Film(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating)
+            Film(uuid=UUID(film.id), title=film.title, imdb_rating=film.imdb_rating)
             for film in films
         ],
         page=page_number,
@@ -83,9 +76,10 @@ async def search_films(
     Search by query in films title, description, genres, person names
     """
     films = await film_service.search(query=query, page_number=page_number, page_size=page_size)
-    return Page(
+
+    return Page[Film](
         items=[
-            Film(uuid=film.id, title=film.title, imdb_rating=film.imdb_rating)
+            Film(uuid=UUID(film.id), title=film.title, imdb_rating=film.imdb_rating)
             for film in films
         ],
         page=page_number,
@@ -97,8 +91,9 @@ async def search_films(
 async def film_details(
     film_id: UUID4,
     film_service: FilmService = Depends(get_film_service),
-) -> FilmDetails:
+):
     film = await film_service.get_by_id(film_id)
+
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=FILM_NOT_FOUND)
 
@@ -107,15 +102,15 @@ async def film_details(
         title=film.title,
         imdb_rating=film.imdb_rating,
         description=film.description,
-        genre=[FilmGenre(uuid=genre.id, name=genre.name) for genre in film.genres],
+        genre=[FilmGenre(uuid=UUID(genre.id), name=genre.name) for genre in film.genres],
         actors=[
-            FilmPerson(uuid=actor.id, full_name=actor.name) for actor in film.actors
+            FilmPerson(uuid=UUID(actor.id), full_name=actor.name) for actor in film.actors
         ],
         writers=[
-            FilmPerson(uuid=writer.id, full_name=writer.name) for writer in film.writers
+            FilmPerson(uuid=UUID(writer.id), full_name=writer.name) for writer in film.writers
         ],
         directors=[
-            FilmPerson(uuid=director.id, full_name=director.name)
+            FilmPerson(uuid=UUID(director.id), full_name=director.name)
             for director in film.directors
         ],
     )

@@ -1,17 +1,25 @@
-from models.genre import Genre
-from models.person import Person
 from models.base import BaseOrjsonModel
+
+
+class FilmGenre(BaseOrjsonModel):
+    id: str
+    name: str
+
+
+class FilmPerson(BaseOrjsonModel):
+    id: str
+    name: str
 
 
 class Film(BaseOrjsonModel):
     id: str
     imdb_rating: float
-    genres: list[Genre]
+    genres: list[FilmGenre]
     title: str
     description: str | None
     directors_names: list[str]
     actors_names: list[str]
     writers_names: list[str]
-    actors: list[Person]
-    writers: list[Person]
-    directors: list[Person]
+    actors: list[FilmPerson]
+    writers: list[FilmPerson]
+    directors: list[FilmPerson]
