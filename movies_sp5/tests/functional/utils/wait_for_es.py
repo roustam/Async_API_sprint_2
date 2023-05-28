@@ -13,5 +13,6 @@ async def wait_es(es_client: AsyncElasticsearch):
 
 
 if __name__ == '__main__':
-    es_client = AsyncElasticsearch(hosts=[f"{elastic_settings.ELASTIC_HOST}:{elastic_settings.ELASTIC_PORT}"], validate_cert=False, use_ssl=False)
+    es_client = AsyncElasticsearch(hosts=[f"http://{elastic_settings.ELASTIC_HOST}:"
+                                          f"{elastic_settings.ELASTIC_PORT}"], verify_certs=False)
     asyncio.run(wait_es(es_client))

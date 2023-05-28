@@ -51,7 +51,8 @@ class FilmService:
 
     async def _get_film_from_elastic(self, film_id: str) -> Film | None:
         try:
-            return await self.elastic.get("movies", film_id)
+            #refactoring according Elastic 8.x version
+            return await self.elastic.get(index="movies", id=film_id)
         except NotFoundError:
             return None
 
@@ -81,11 +82,11 @@ class FilmService:
                 },
             }
             
-        return await self.elastic.search(body, "movies")
+        return await self.elastic.search(query=body, index="movies")
 
     async def _search_films_in_elastic(self, query: str, page_number: int | None = 1, page_size: int | None = 10):
         return await self.elastic.search(
-            {
+            query = {
                 "query": {
                     "multi_match": {
                         "query": query,
@@ -102,7 +103,7 @@ class FilmService:
                 "from": (page_number - 1) * page_size,
                 "size": page_size,
             },
-            "movies",
+            index="movies"
         )
 
 

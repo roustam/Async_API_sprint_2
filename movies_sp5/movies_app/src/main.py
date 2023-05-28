@@ -8,7 +8,6 @@ import pydantic
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from fastapi_pagination import add_pagination
 from redis.asyncio import Redis
 
 from api.v1 import films, genres, persons
@@ -33,7 +32,7 @@ async def startup():
     es_settings = ElasticSettings()
     redis.redis = Redis(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
     elastic.es = AsyncElasticsearch(
-        hosts=[f"{es_settings.ELASTIC_HOST}:{es_settings.ELASTIC_PORT}"]
+        hosts=[f"http://{es_settings.ELASTIC_HOST}:{es_settings.ELASTIC_PORT}"]
     )
 
 
@@ -59,7 +58,7 @@ app.include_router(films.router, prefix="/api/v1/films", tags=["films"])
 app.include_router(genres.router, prefix="/api/v1/genres", tags=["genres"])
 app.include_router(persons.router, prefix="/api/v1/persons", tags=["persons"])
 
-add_pagination(app)
+# add_pagination(app)
 
 
 class Application(gunicorn_app.BaseApplication):

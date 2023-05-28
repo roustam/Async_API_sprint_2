@@ -22,9 +22,8 @@ def event_loop():
 @pytest_asyncio.fixture(scope='session')
 async def es_client():
     client = AsyncElasticsearch(
-        hosts=[f"{elastic_settings.ELASTIC_HOST}:{elastic_settings.ELASTIC_PORT}"],
-        validate_cert=False,
-        use_ssl=False,
+        hosts=[f"http://{elastic_settings.ELASTIC_HOST}:{elastic_settings.ELASTIC_PORT}"],
+        verify_certs=False,
     )
     yield client
     await client.close()
@@ -48,12 +47,13 @@ async def session():
 async def es_write_data(es_client: AsyncElasticsearch):
     async def inner(data: list[dict], index: str, id_field: str):
         bulk_query = get_es_bulk_query(data, index, id_field)
+        print('>>>>>>>>>>>>>> bulk query', bulk_query)
         str_query = '\n'.join(bulk_query) + '\n'
-        response = await es_client.bulk(str_query, refresh=True)
+        response = await es_client.bulk(index=index, query=bulk_query)
         if response['errors']:
             raise Exception('Ошибка записи данных в Elasticsearch')
     yield inner
-    await es_client.delete_by_query('_all', body={"query": {"match_all": {}}})
+    # await es_client.delete_by_query('_all', body={"query": {"match_all": {}}})
 
 
 @pytest_asyncio.fixture

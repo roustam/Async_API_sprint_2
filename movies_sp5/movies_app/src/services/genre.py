@@ -93,7 +93,7 @@ class GenreService:
 
     async def _get_genre_from_elastic_by_id(self, genre_id: str) -> Genre | None:
         try:
-            doc = await self.elastic.get("genres", genre_id)
+            doc = await self.elastic.get(index="genres", id=genre_id)
         except NotFoundError:
             return None
         return Genre(**doc["_source"])

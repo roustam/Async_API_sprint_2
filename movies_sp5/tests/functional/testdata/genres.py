@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 GENRES = (
     'Action',
     'Adventure',
@@ -26,3 +28,6 @@ GENRES = (
     'War',
     'Western',
 )
+
+def get_all_genres():
+    return [{'id':uuid4().__str__(), 'name': genre} for genre in GENRES]

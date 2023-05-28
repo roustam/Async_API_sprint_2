@@ -36,7 +36,7 @@ class PersonService:
         self, person_id: str
     ) -> PersonFilm | None:
         try:
-            doc = await self.elastic.get("persons", str(person_id))
+            doc = await self.elastic.get(index="persons", id=str(person_id))
         except NotFoundError:
             return None
         return PersonFilm(**doc["_source"])
@@ -68,7 +68,7 @@ class PersonService:
     async def _get_film_for_person_from_elastic(self, person_id) -> dict:
         try:
             result = await self.elastic.search(
-                {
+                query = {
                     "query": {
                         "bool": {
                             "should": [
@@ -97,7 +97,7 @@ class PersonService:
                         }
                     }
                 },
-                "movies",
+                index="movies",
             )
         except NotFoundError:
             return None
