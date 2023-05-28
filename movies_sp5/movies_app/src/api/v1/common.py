@@ -1,5 +1,4 @@
 from typing import Generic, TypeVar
-from fastapi import APIRouter
 
 from pydantic import BaseModel
 
