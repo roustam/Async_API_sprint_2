@@ -10,9 +10,7 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from models.person import PersonFilm, PersonFilmDetails, \
     PersonFilmDetailsRoles
-from services.common import make_redis_key
-
-person_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
+from services.common import make_redis_key, CACHE_EXPIRE_IN_SECONDS
 
 
 class PersonService:
@@ -104,7 +102,7 @@ class PersonService:
 
         return result
 
-    async def get_film_for_person_by_id(self, person_id: str):
+    async def get_films_by_person_id(self, person_id: str):
         redis_key = make_redis_key('person_details', person_id)
         res = await self._get_film_for_person_from_cache(redis_key)
 
@@ -131,7 +129,7 @@ class PersonService:
 
         return res
 
-    async def get_persons_with_films(self, query: str, page: int, size: int) \
+    async def search(self, query: str, page: int, size: int) \
             -> list[PersonFilm]:
         persons_with_films = await self._get_persons_with_films_from_cache(
             query, page, size
