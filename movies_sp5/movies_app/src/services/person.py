@@ -17,7 +17,8 @@ class PersonService(ServiceAbstract):
         person = await self._get_persons_from_cache(key)
         if not person:
             person = await self._get_person_from_elastic(person_id)
-            await self._save_persons_to_cache(key, person)
+            if person:
+                await self._save_persons_to_cache(key, person.body)
         return Person(**person['_source']) if person else None
     
     async def get_films_by_person_id(self, person_id: str, page_number: int | None = 1, page_size: int | None = 10) -> list[Person]:
@@ -25,7 +26,7 @@ class PersonService(ServiceAbstract):
         person_films = await self._get_persons_from_cache(key)
         if not person_films:
             person_films = await self._search_person_films_in_elastic(person_id, page_number=page_number, page_size=page_size)
-            await self._save_persons_to_cache(key, person_films)
+            await self._save_persons_to_cache(key, person_films.body)
         return [PersonFilmDetails(**doc['_source']) for doc in person_films['hits']['hits']]
     
     async def search(self, query: str, page_number: int | None = 1, page_size: int | None = 10) -> list[Person]:
@@ -33,7 +34,9 @@ class PersonService(ServiceAbstract):
         persons = await self._get_persons_from_cache(key)
         if not persons:
             persons = await self._search_persons_in_elastic(query, page_number=page_number, page_size=page_size)
-            await self._save_persons_to_cache(key, persons)
+
+            if persons['hits']['hits']:
+                await self._save_persons_to_cache(key, persons.body)
         return [Person(**doc['_source']) for doc in persons['hits']['hits']]
 
     async def _get_persons_from_cache(self, key) -> dict | list[dict]:
@@ -45,7 +48,7 @@ class PersonService(ServiceAbstract):
 
     async def _get_person_from_elastic(self, person_id: str) -> dict | None:
         try:
-            return await self.elastic.get('persons', person_id)
+            return await self.elastic.get(index='persons', id=person_id)
         except NotFoundError:
             return None
 
