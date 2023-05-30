@@ -23,7 +23,8 @@ services:
     environment:
       discovery.type: "single-node"
       xpack.security.enabled: "false"
-      ES_JAVA_OPTS: "-Xms4g -Xmx4g"
+      ES_JAVA_OPTS: "-Xms800m -Xmx800m"
+      ingest.geoip.downloader.enabled: "false"
     volumes:
       - ./../../movies_elastic/esdata_tests:/usr/share/elasticsearch/data
     ports:
@@ -55,3 +56,6 @@ services:
       && python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
       && pytest /tests/functional/src"
+    depends_on:
+      - movies_app
+      - movies_elastic

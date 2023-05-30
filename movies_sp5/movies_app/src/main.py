@@ -32,8 +32,24 @@ async def startup():
     es_settings = ElasticSettings()
     redis.redis = Redis(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
     elastic.es = AsyncElasticsearch(
-        hosts=[f"{es_settings.ELASTIC_HOST}:{es_settings.ELASTIC_PORT}"]
+        hosts=[f"http://{es_settings.ELASTIC_HOST}:{es_settings.ELASTIC_PORT}"]
     )
+    await init_es(elastic.es, es_settings)
+
+async def init_es(elastic, es_settings):
+    '''Creating indices if they not exist'''
+    for idx in ['genres', 'movies', 'persons']:
+        res = await elastic.indices.exists(index=idx,)
+        if not res:
+            idx_status_creation = await elastic.indices.create(
+                index=idx,
+                ignore=400,
+                settings=es_settings.settings[idx],
+                mappings=es_settings.mappings[idx])
+
+
+
+
 
 
 @app.on_event("shutdown")

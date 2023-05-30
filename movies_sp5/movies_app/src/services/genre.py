@@ -33,11 +33,11 @@ class GenreService(ServiceAbstract):
         return orjson.loads(genres) if genres else None
         
     async def _save_genres_to_cache(self, key, genres):
-        await self.redis.set(key, orjson.dumps(genres).decode(), CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(key, orjson.dumps(genres.body).decode(), CACHE_EXPIRE_IN_SECONDS)
 
     async def _get_genre_from_elastic(self, genre_id: str) -> dict | None:
         try:
-            return await self.elastic.get('genres', genre_id)
+            return await self.elastic.get(index='genres', id=genre_id)
         except NotFoundError:
             return None
 
