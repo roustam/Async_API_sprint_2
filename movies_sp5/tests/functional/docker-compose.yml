@@ -24,6 +24,7 @@ services:
       discovery.type: "single-node"
       xpack.security.enabled: "false"
       ES_JAVA_OPTS: "-Xms800m -Xmx800m"
+      ingest.geoip.downloader.enabled: "false"
     volumes:
       - ./../../movies_elastic/esdata_tests:/usr/share/elasticsearch/data
     ports:

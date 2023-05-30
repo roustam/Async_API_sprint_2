@@ -22,8 +22,7 @@ class TestGenres:
     @pytest.mark.asyncio
     async def test_genres(self, es_write_data, make_get_request, query_data, expected_answer):
         await es_write_data(index='genres', data=GENRES)
-        time.sleep(3)
         body = await make_get_request('/genres', query_data)
-        assert expected_answer['length'] == len(body["items"])
+        assert expected_answer['length'] == len(body['items'])
 
 
