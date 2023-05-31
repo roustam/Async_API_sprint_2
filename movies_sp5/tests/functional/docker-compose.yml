@@ -55,7 +55,5 @@ services:
       && export PYTHONPATH=$PYTHONPATH:/tests/functional
       && python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
+      && python3 /tests/functional/utils/wait_for_api.py
       && pytest /tests/functional/src"
-    depends_on:
-      - movies_app
-      - movies_elastic

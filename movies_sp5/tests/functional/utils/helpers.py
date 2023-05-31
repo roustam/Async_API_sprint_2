@@ -19,11 +19,11 @@ def get_es_bulk_query(data: list[dict], index: str, id_field: str):
 #     return bulk_data
 
 
-async def gen_bulk_data(records: list,index :str):
-    for genre in records:
-        record_uuid4 = uuid4()
+async def gen_bulk_data(index: str, records: list[dict]):
+    # helper that prepares data for async_bulk in es_write_data
+    for record in records:
         yield {
             "_index": index,
-            "_id":record_uuid4,
-            "_source": {"id": record_uuid4, 'name':genre},
+            "_id": record['id'],
+            "_source": record
         }

@@ -33,7 +33,7 @@ class GenreService(ServiceAbstract):
         return orjson.loads(genres) if genres else None
         
     async def _save_genres_to_cache(self, key, genres):
-        if genres.body:
+        if not genres==None:
             await self.redis.set(key, orjson.dumps(genres.body).decode(), CACHE_EXPIRE_IN_SECONDS)
 
     async def _get_genre_from_elastic(self, genre_id: str) -> dict | None:

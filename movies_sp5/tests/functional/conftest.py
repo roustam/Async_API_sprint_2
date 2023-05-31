@@ -48,19 +48,23 @@ async def session():
 @pytest_asyncio.fixture
 async def es_write_data(es_client: AsyncElasticsearch):
     async def inner(index: str, data: list):
-        response = await async_bulk(es_client, gen_bulk_data(index=index, records=data),
+        response = await async_bulk(client=es_client,
+                                    actions=gen_bulk_data(index=index, records=data),
                                     index=index)
         if not response:
             raise Exception('Ошибка записи данных в Elasticsearch')
 
     yield inner
-    await es_client.delete_by_query(index='_all', query={"match_all": {}})
+    await es_client.delete_by_query(index='_all', query={"match_all": {}}, conflicts='proceed')
 
 @pytest_asyncio.fixture
 async def es_add_bulk_data(es_client: AsyncElasticsearch):
     async def inner(index: str, qu: list[dict]):
         response = await es_client.bulk(index=index, query=qu)
-    await es_client.delete_by_query(index='_all', query={"match_all": {}})
+    await es_client.delete_by_query(index=['movies','persons','genres'],
+                                    query={"match_all": {}},
+                                    ignore_unavailable=True,
+                                    wait_for_active_shards=1)
 
 
 
