@@ -41,13 +41,8 @@ class FilmService(ServiceAbstract):
         return orjson.loads(films) if films else None
         
     async def _save_films_to_cache(self, key, films):
-<<<<<<< HEAD
-        print("get cached", key)
 
-        await self.redis.set(key, orjson.dumps(films.body), CACHE_EXPIRE_IN_SECONDS)
-=======
         await self.redis.set(key, orjson.dumps(films.body).decode(), CACHE_EXPIRE_IN_SECONDS)
->>>>>>> 67183f9d4224c13ba3b966c16a79e5f30fb91e46
 
     async def _get_film_from_elastic(self, film_id: str) -> dict | None:
         try:

@@ -44,7 +44,7 @@ class PersonService(ServiceAbstract):
         return orjson.loads(persons) if persons else None
         
     async def _save_persons_to_cache(self, key, persons):
-        await self.redis.set(key, orjson.dumps(persons.body).decode(), CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(key, orjson.dumps(persons).decode(), CACHE_EXPIRE_IN_SECONDS)
 
     async def _get_person_from_elastic(self, person_id: str) -> dict | None:
         try:
