@@ -30,4 +30,4 @@ GENRES = (
 )
 
 def get_all_genres():
-    return [{'id':uuid4().__str__(), 'name': genre} for genre in GENRES]
+    return [{'uuid':uuid4().__str__(), 'name': genre} for genre in GENRES]

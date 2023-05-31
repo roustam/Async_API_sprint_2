@@ -2,14 +2,16 @@ import asyncio
 import uuid
 import aiohttp
 from elasticsearch import AsyncElasticsearch
+from elasticsearch.helpers import async_bulk
 import pytest
 import pytest_asyncio
 from redis.asyncio import Redis
 
+from typing import Iterable, Any
+from .utils.helpers import gen_bulk_data
 from .settings import elastic_settings
 from .settings import app_settings
 from .settings import redis_settings
-from .utils.helpers import get_es_bulk_query
 
 
 @pytest.fixture(scope="session")
@@ -45,26 +47,29 @@ async def session():
 
 @pytest_asyncio.fixture
 async def es_write_data(es_client: AsyncElasticsearch):
-    async def inner(data: list[dict], index: str, id_field: str):
-        bulk_query = get_es_bulk_query(data, index, id_field)
-        print('>>>>>>>>>>>>>> bulk query', bulk_query)
-        str_query = '\n'.join(bulk_query) + '\n'
-        response = await es_client.bulk(index=index, query=bulk_query)
-        if response['errors']:
+    async def inner(index: str, data: list):
+        response = await async_bulk(es_client, gen_bulk_data(index=index, records=data),
+                                    index=index)
+        if not response:
             raise Exception('Ошибка записи данных в Elasticsearch')
+
     yield inner
     await es_client.delete_by_query('_all', body={"query": {"match_all": {}}})
 
 @pytest_asyncio.fixture
 async def es_add_bulk_data(es_client: AsyncElasticsearch):
     async def inner(index: str, qu: list[dict]):
-        response = await es_client.bulk(index=index, query=bulk_query)
+        response = await es_client.bulk(index=index, query=qu)
+    await es_client.delete_by_query(index='_all', query={"match_all": {}})
+
 
 
 @pytest_asyncio.fixture
 async def make_get_request(session: aiohttp.ClientSession, redis_client: Redis):
     async def inner(handler: str, data: dict = None):
-        async with session.get(f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler, params=data) as response:
+
+        async with session.get(f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler,
+                               params=data) as response:
             if response.status == 200:
                 return await response.json()
             else:
