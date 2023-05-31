@@ -36,6 +36,7 @@ venv/
 
 # Global excludes across all subdirectories
 *.o
+*.bak
 *.obj
 *.bc
 *.so
@@ -75,3 +76,5 @@ lib*.pc
 /Release/
 /tmp_install/
 /portlock/
+
+.DS_Store
