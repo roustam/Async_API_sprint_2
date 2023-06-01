@@ -19,4 +19,4 @@ class RedisClient:
         return orjson.loads(data) if data else None
     
     async def save_by_key(self, key, data):
-        await redis.set(key, orjson.dumps(data).decode(), CACHE_EXPIRE_IN_SECONDS)
+        await redis.set(key, orjson.dumps(data.body).decode(), CACHE_EXPIRE_IN_SECONDS)
