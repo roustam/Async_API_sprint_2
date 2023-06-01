@@ -87,6 +87,20 @@ async def make_get_request(session: aiohttp.ClientSession, redis_client: Redis):
     await redis_client.flushdb()
 
 
+@pytest_asyncio.fixture
+async def get_api_response(session: aiohttp.ClientSession, redis_client:
+Redis):
+    async def inner(handler: str, data: dict = None):
+
+        async with session.get(f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler,
+                               params=data) as response:
+            if response.status == 200:
+                return response.status, await response.json()
+            else:
+                raise Exception(response)
+    yield inner
+    await redis_client.flushdb()
+
 @pytest.fixture
 def es_data():
     return [

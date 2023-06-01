@@ -17,13 +17,13 @@ def choose_one_person(persons):
 
 class TestPersons:
     @pytest.mark.asyncio
-    async def test_person_by_id(self, es_write_persons, make_get_request):
+    async def test_person_by_id(self, es_write_persons, get_api_response):
         persons = create_persons_list()
 
         await es_write_persons(index='persons', data=persons, id='id')
 
         person_to_request = choose_one_person(persons)
-        response = await make_get_request(f'/persons/{person_to_request["id"]}')
+        status, response_body = await get_api_response(f'/persons/{person_to_request["id"]}')
 
         person_to_request_movies = [
             {
@@ -32,6 +32,7 @@ class TestPersons:
             } for film in person_to_request['films']
         ]
 
-        assert response['uuid'] == person_to_request['id']
-        assert response['full_name'] == person_to_request['full_name']
-        assert response['films'] == person_to_request_movies
+        assert status == 200
+        assert response_body['uuid'] == person_to_request['id']
+        assert response_body['full_name'] == person_to_request['full_name']
+        assert response_body['films'] == person_to_request_movies
