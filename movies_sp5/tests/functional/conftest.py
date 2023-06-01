@@ -7,8 +7,7 @@ import pytest
 import pytest_asyncio
 from redis.asyncio import Redis
 
-from typing import Iterable, Any
-from .utils.helpers import gen_bulk_data
+from .utils.helpers import gen_bulk_data, persons_bulk_data
 from .settings import elastic_settings
 from .settings import app_settings
 from .settings import redis_settings
@@ -47,14 +46,31 @@ async def session():
 
 @pytest_asyncio.fixture
 async def es_write_data(es_client: AsyncElasticsearch):
-    async def inner(index: str, data: list):
-        response = await async_bulk(es_client, gen_bulk_data(index=index, records=data),
-                                    index=index)
-        if not response:
+    async def inner(index: str, data: list, id: str):
+        bulk_data = gen_bulk_data(index=index, persons=data, id_field=id)
+        response = await async_bulk(es_client, bulk_data)
+
+        if response[0] == 0:
             raise Exception('Ошибка записи данных в Elasticsearch')
 
     yield inner
-    await es_client.delete_by_query(index='_all', query={"match_all": {}})
+
+    await es_client.delete_by_query(index='_all', body={"query": {"match_all": {}}})
+
+
+@pytest_asyncio.fixture
+async def es_write_persons(es_client: AsyncElasticsearch):
+    async def inner(index: str, data: list, id: str):
+        bulk_data = persons_bulk_data(index=index, persons=data, id_field=id)
+        response = await async_bulk(es_client, bulk_data)
+
+        if response[0] == 0:
+            raise Exception('Ошибка записи данных в Elasticsearch')
+
+    yield inner
+
+    await es_client.delete_by_query(index='persons', body={"query": {
+        "match_all": {}}})
 
 
 @pytest_asyncio.fixture
@@ -106,3 +122,6 @@ def es_data():
             ],
         } for _ in range(15)
     ]
+
+
+
