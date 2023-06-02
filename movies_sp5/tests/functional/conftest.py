@@ -74,8 +74,7 @@ async def es_write_persons(es_client: AsyncElasticsearch):
     yield inner
 
     await es_client.delete_by_query(
-        index='persons', body={"query": {
-            "match_all": {}}})
+        index='persons', body={"query": {"match_all": {}}})
 
 
 @pytest_asyncio.fixture
@@ -93,8 +92,8 @@ async def es_write_person_movies(es_client: AsyncElasticsearch):
 
     yield inner
 
-    # await es_client.delete_by_query(
-    #     index='movies', body={"query": {"match_all": {}}})
+    await es_client.delete_by_query(
+        index='movies', body={"query": {"match_all": {}}})
 
 
 @pytest_asyncio.fixture
