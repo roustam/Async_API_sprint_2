@@ -7,8 +7,7 @@ import pytest
 import pytest_asyncio
 from redis.asyncio import Redis
 
-from .utils.helpers import gen_bulk_data, get_es_bulk_query, \
-    persons_bulk_data, person_movies_bulk_data
+from .utils.helpers import gen_bulk_data, persons_bulk_data, person_movies_bulk_data
 from .settings import elastic_settings
 from .settings import app_settings
 from .settings import redis_settings
@@ -59,7 +58,7 @@ async def es_write_data(es_client: AsyncElasticsearch):
     yield inner
 
     await es_client.delete_by_query(
-        index='_all', body={"query": {"match_all": {}}})
+        index='_all', query={"match_all": {}})
 
 
 @pytest_asyncio.fixture
@@ -74,7 +73,7 @@ async def es_write_persons(es_client: AsyncElasticsearch):
     yield inner
 
     await es_client.delete_by_query(
-        index='persons', body={"query": {"match_all": {}}})
+        index='persons', query={"match_all": {}})
 
 
 @pytest_asyncio.fixture
@@ -93,7 +92,7 @@ async def es_write_person_movies(es_client: AsyncElasticsearch):
     yield inner
 
     await es_client.delete_by_query(
-        index='movies', body={"query": {"match_all": {}}})
+        index='movies', query={"match_all": {}})
 
 
 @pytest_asyncio.fixture

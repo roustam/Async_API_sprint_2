@@ -193,5 +193,49 @@ def random_films_extended():
 
             ]
         },
+        {
+            "id": "c60cb56f-eb05-45d2-be26-eacfd21c1d65",
+            "imdb_rating": 8.0,
+            "genres": [
+                {
+                    "id": "6c162475-c7ed-4461-9184-001ef3d9f26e",
+                    "name": "Sci-Fi"
+                }],
+            "title": "Star Control",
+            "description": "Short description",
+            "directors_names": [
+                "Paul Reiche III",
+                "Fred Ford"
+            ],
+            "actors_names": [
+                "Paul Reiche III"
+            ],
+            "writers_names": [
+                "Fred Ford"
+            ],
+            "actors": [
+                {
+                    "id": "13f03554-78b0-4e1a-b16a-073c1502851e",
+                    "name": "Paul Reiche III"
+                }
+            ],
+            "writers": [
+                {
+                    "id": "91fbb296-fcc3-43fe-921d-6d016d08c9d0",
+                    "name": "Fred Ford"
+                },
+            ],
+            "directors": [
+                {
+                    "id": "13f03554-78b0-4e1a-b16a-073c1502851e",
+                    "name": "Paul Reiche III"
+                },
+                {
+                    "id": "91fbb296-fcc3-43fe-921d-6d016d08c9d0",
+                    "name": "Fred Ford"
+                }
+            ]
+        },
+
     ]
     return movies

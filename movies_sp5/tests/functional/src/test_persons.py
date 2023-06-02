@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 import random
@@ -21,6 +23,7 @@ class TestPersons:
         persons = create_persons_list()
 
         await es_write_persons(index='persons', data=persons, id='id')
+        await asyncio.sleep(2)
 
         person_to_request = choose_one_person(persons)
         status, response_body = await get_api_response(
@@ -39,11 +42,13 @@ class TestPersons:
         assert response_body['films'] == person_to_request_movies
 
     @pytest.mark.asyncio
-    async def test_all_films_by_person(self, es_write_person_movies, get_api_response):
+    async def test_all_films_by_person(self, es_write_person_movies,
+            get_api_response,):
         films = random_films_extended()
         person_to_request_id = '9758b894-57d7-465d-b657-c5803dd5b7f7'
 
         await es_write_person_movies(index='movies', data=films, id='id')
+        await asyncio.sleep(2)
 
         status, response_body = await get_api_response(f'/persons/'
                                       f'{person_to_request_id}/film')

@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from testdata.genres import GENRES
+from ..testdata.genres import GENRES
 
 class TestGenres:
     @pytest.mark.parametrize(
