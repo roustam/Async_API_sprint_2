@@ -5,6 +5,7 @@ import pytest
 
 from testdata.genres import get_all_genres
 
+
 class TestGenres:
     @pytest.mark.parametrize(
         'query_data, expected_answer',

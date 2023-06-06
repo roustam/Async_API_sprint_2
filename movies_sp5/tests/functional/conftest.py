@@ -7,8 +7,7 @@ import pytest
 import pytest_asyncio
 from redis.asyncio import Redis
 
-from typing import Iterable, Any
-from .utils.helpers import gen_bulk_data
+from .utils.helpers import gen_bulk_data, persons_bulk_data, person_movies_bulk_data
 from .settings import elastic_settings
 from .settings import app_settings
 from .settings import redis_settings
@@ -24,7 +23,8 @@ def event_loop():
 @pytest_asyncio.fixture(scope='session')
 async def es_client():
     client = AsyncElasticsearch(
-        hosts=[f"http://{elastic_settings.ELASTIC_HOST}:{elastic_settings.ELASTIC_PORT}"],
+        hosts=[
+            f"http://{elastic_settings.ELASTIC_HOST}:{elastic_settings.ELASTIC_PORT}"],
         verify_certs=False,
     )
     yield client
@@ -33,7 +33,8 @@ async def es_client():
 
 @pytest_asyncio.fixture(scope='session')
 async def redis_client():
-    client = Redis(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
+    client = Redis(
+        host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
     yield client
     await client.close()
 
@@ -67,17 +68,71 @@ async def es_add_bulk_data(es_client: AsyncElasticsearch):
                                     wait_for_active_shards=1)
 
 
+@pytest_asyncio.fixture
+async def es_write_persons(es_client: AsyncElasticsearch):
+    async def inner(index: str, data: list, id: str):
+        bulk_data = persons_bulk_data(index=index, persons=data, id_field=id)
+        response = await async_bulk(es_client, bulk_data)
+
+        if response[0] == 0:
+            raise Exception('Ошибка записи данных в Elasticsearch')
+
+    yield inner
+
+    await es_client.delete_by_query(
+        index='persons', query={"match_all": {}})
+
 
 @pytest_asyncio.fixture
-async def make_get_request(session: aiohttp.ClientSession, redis_client: Redis):
-    async def inner(handler: str, data: dict = None):
+async def es_write_person_movies(es_client: AsyncElasticsearch):
+    async def inner(index: str, data: list[dict], id: str):
+        bulk_data = person_movies_bulk_data(
+            index=index,
+            movies=data,
+            id_field=id
+        )
+        response = await async_bulk(es_client, bulk_data)
 
-        async with session.get(f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler,
-                               params=data) as response:
+        if response[0] == 0:
+            raise Exception('Ошибка записи данных в Elasticsearch')
+
+    yield inner
+
+    await es_client.delete_by_query(
+        index='movies', query={"match_all": {}})
+
+
+@pytest_asyncio.fixture
+async def make_get_request(
+        session: aiohttp.ClientSession, redis_client: Redis
+):
+    async def inner(handler: str, data: dict = None):
+        async with session.get(
+                f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler,
+                params=data) as response:
             if response.status == 200:
                 return await response.json()
             else:
                 raise Exception(response)
+
+    yield inner
+    await redis_client.flushdb()
+
+
+@pytest_asyncio.fixture
+async def get_api_response(
+        session: aiohttp.ClientSession, redis_client:
+        Redis
+):
+    async def inner(handler: str, data: dict = None):
+        async with session.get(
+                f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler,
+                params=data) as response:
+            if response.status == 200:
+                return response.status, await response.json()
+            else:
+                raise Exception(response)
+
     yield inner
     await redis_client.flushdb()
 
@@ -93,7 +148,7 @@ def es_data():
                     'id': str(uuid.uuid4()),
                     'name': 'Action'
                 },
-                { 
+                {
                     'id': str(uuid.uuid4()),
                     'name': 'Sci-Fi'
                 }
