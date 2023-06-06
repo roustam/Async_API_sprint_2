@@ -1,10 +1,7 @@
 from abc import ABC
-from elasticsearch import AsyncElasticsearch
 
-from redis import Redis
-
-
-CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
+from db.elastic import ElasticClient
+from db.redis import RedisClient
 
 
 def make_redis_key(entity: str, *args):
@@ -12,6 +9,6 @@ def make_redis_key(entity: str, *args):
 
 
 class ServiceAbstract(ABC):
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
+    def __init__(self, redis: RedisClient, elastic: ElasticClient):
         self.redis = redis
         self.elastic = elastic

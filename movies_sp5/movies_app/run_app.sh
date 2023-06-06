@@ -5,5 +5,10 @@ until curl -sS "http://$ELASTIC_HOST:$ELASTIC_PORT/_cat/health?h=status" | grep 
     sleep 5
 done
 
+until curl -sS "http://$ELASTIC_HOST:$ELASTIC_PORT/_cat/health?h=pending_tasks" | grep -q "0"; do
+    sleep 5
+done
+
 cd src
 uvicorn main:app --host 0.0.0.0 --port 80 --workers 4
+

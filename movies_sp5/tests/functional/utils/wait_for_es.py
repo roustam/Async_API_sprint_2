@@ -4,13 +4,21 @@ import time
 from elasticsearch import Elasticsearch, NotFoundError
 
 from settings import elastic_settings
-from testdata.es_mapping import genres_settings, genres_mappings
+
 
 
 def wait_es(es_client: Elasticsearch):
+    # проверка на наличие индексов
+    genres_index_exists = False
+    movies_index_exists = False
+    persons_index_exists = False
     while True:
         if es_client.ping():
-            break
+            genres_index_exists = es_client.indices.exists(index='genres')
+            movies_index_exists = es_client.indices.exists(index='movies')
+            persons_index_exists = es_client.indices.exists(index='persons')
+            if genres_index_exists and movies_index_exists and persons_index_exists:
+                break
         time.sleep(1)
     return True
 

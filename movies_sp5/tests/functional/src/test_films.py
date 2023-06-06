@@ -1,7 +1,7 @@
 import random
 import pytest
 
-from ..testdata.films import random_films
+from testdata.films import random_films
 
 
 class TestFilms:
@@ -14,9 +14,10 @@ class TestFilms:
     )
     @pytest.mark.asyncio
     async def test_films_sorted(self, es_write_data, make_get_request, query_data, order):
+        # films = random_films(qty=3)
         films = random_films(qty=3)
 
-        await es_write_data(films, 'movies', 'id')
+        await es_write_data(index='films', data=films)
 
         body = await make_get_request('/films', query_data)
 
@@ -43,8 +44,8 @@ class TestFilms:
     async def test_film_by_id(self, es_write_data, make_get_request):
         films = random_films(qty=3)
         film_for_get = random.choice(films)
-
-        await es_write_data(films, 'movies', 'id')
+        await es_write_data(index='genres', data=get_films())
+        # await es_write_data(films, 'movies', 'id')
 
         body = await make_get_request(f'/films/{film_for_get["id"]}')
 
