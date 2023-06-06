@@ -4,7 +4,7 @@ from urllib3.util import Retry, Timeout
 import time
 from settings import app_settings
 
-def wait_for_server(url):
+def wait_for_api(url):
     retries = Retry(connect=100)
     timeout = Timeout(connect=30)
     http = urllib3.PoolManager(num_pools=1, retries=retries, timeout=timeout)
@@ -20,4 +20,4 @@ def wait_for_server(url):
 
 if __name__ == '__main__':
     url = f"http://{app_settings.APP_HOST}:{app_settings.APP_PORT}/api/openapi.json"
-    wait_for_server(url)
+    wait_for_api(url)
