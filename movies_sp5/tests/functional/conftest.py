@@ -94,14 +94,17 @@ async def es_write_persons(es_client: AsyncElasticsearch):
         index='persons', query={"match_all": {}})
 
 
-<<<<<<< HEAD
-
 @pytest_asyncio.fixture(scope='session')
 async def make_get_request(session: aiohttp.ClientSession, redis_client: Redis):
     async def inner(handler: str, data: dict = None):
         url = f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}'
         async with session.get(url + '/api/v1' + handler, params=data) as response:
-=======
+            if response.status == 200:
+                return await response.json()
+            else:
+                raise Exception(response)
+            await redis_client.flushdb()
+
 @pytest_asyncio.fixture
 async def es_write_person_movies(es_client: AsyncElasticsearch):
     async def inner(index: str, data: list[dict], id: str):
@@ -129,12 +132,10 @@ async def make_get_request(
         async with session.get(
                 f'http://{app_settings.APP_HOST}:{app_settings.APP_PORT}' + '/api/v1' + handler,
                 params=data) as response:
->>>>>>> 231478ce4dca793b352765dfcf292e8a394d7240
             if response.status == 200:
                 return await response.json()
             else:
                 raise Exception(response)
-<<<<<<< HEAD
     return inner
 
 
@@ -148,10 +149,6 @@ async def flush_cache(redis_client: Redis):
 @pytest.fixture(scope='session')
 def get_genres():
     return get_all_genres()
-=======
-
-    yield inner
-    await redis_client.flushdb()
 
 
 @pytest_asyncio.fixture
@@ -170,7 +167,6 @@ async def get_api_response(
 
     yield inner
     await redis_client.flushdb()
->>>>>>> 231478ce4dca793b352765dfcf292e8a394d7240
 
 @pytest.fixture(scope='session')
 def get_films():
