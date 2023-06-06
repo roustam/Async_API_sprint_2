@@ -10,6 +10,7 @@ from redis.asyncio import Redis
 from typing import Iterable, Any
 from .utils.helpers import gen_bulk_data, prepare_bulk_data, get_es_bulk_query
 from .testdata.genres import get_all_genres
+from .testdata.films import random_films
 from .settings import elastic_settings
 from .settings import app_settings
 from .settings import redis_settings
@@ -101,6 +102,10 @@ async def flush_cache(redis_client: Redis):
 @pytest.fixture(scope='session')
 def get_genres():
     return get_all_genres()
+
+@pytest.fixture(scope='session')
+def get_films():
+    return random_films(10)
 
 @pytest.fixture(scope='session')
 def es_data():

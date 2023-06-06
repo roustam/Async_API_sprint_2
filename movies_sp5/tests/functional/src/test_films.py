@@ -15,40 +15,35 @@ class TestFilms:
         ] 
     )
     @pytest.mark.asyncio
-    async def test_films_sorted(self, es_write_data, make_get_request, query_data, order, es_remove_data):
+    async def test_films_sorted(self, es_write_data, make_get_request, query_data, order,get_films, es_remove_data):
 
-        films = random_films(qty=3)
-
-        await es_write_data(index='movies', data=films)
-
+        await es_write_data(index='movies', data=get_films)
         body = await make_get_request('/films', query_data)
-        print('---->',body)
-        res = await es_remove_data('movies')
-        print(res)
-        assert len(body['items']) == 3
+        assert len(body['items']) == 10
         assert body['items'] == [
             {'uuid': film['id'], 'title': film['title'], 'imdb_rating': film['imdb_rating']}
             for film
-            in sorted(films, key=lambda film: film['imdb_rating'], reverse=order=='desc')
+            in sorted(get_films, key=lambda film: film['imdb_rating'], reverse=order=='desc')
         ]
 
-    # @pytest.mark.asyncio
+    @pytest.mark.asyncio
     # @pytest.mark.skip('Не работает фильтрация по жанрам')
-    # async def test_films_filtered(self, es_write_data, make_get_request):
-    #     films = random_films(qty=3)
-    #     film_for_filtering = random.choice(films)
-    #
-    #     await es_write_data(index='movies',data=films)
-    #
-    #     body = await make_get_request('/films', {'sort': '-imdb_rating', 'genre': random.choice(film_for_filtering['genres'])['id']})
-    #
-    #     assert body['items'] == [{'uuid': film_for_filtering['id'], 'title': film_for_filtering['title'], 'imdb_rating': film_for_filtering['imdb_rating']}]
+    async def test_films_filtered(self, es_write_data, make_get_request, get_films):
+
+        film_for_filtering = random.choice(get_films)
+
+        await es_write_data(index='movies',data=get_films)
+
+        body = await make_get_request('/films', {'sort': '-imdb_rating',
+                                                 'genre': random.choice(film_for_filtering['genres'])['id']})
+
+        assert body['items'] == [{'uuid': film_for_filtering['id'], 'title': film_for_filtering['title'],
+                                  'imdb_rating': film_for_filtering['imdb_rating']}]
 
     @pytest.mark.asyncio
-    async def test_film_by_id(self, es_write_data, make_get_request):
-        films = random_films(qty=3)
-        film_for_get = random.choice(films)
-        await es_write_data(index='movies', data=films)
+    async def test_film_by_id(self, es_write_data, make_get_request, get_films):
+        film_for_get = random.choice(get_films)
+        await es_write_data(index='movies', data=get_films)
 
         body = await make_get_request(f'/films/{film_for_get["id"]}')
 
