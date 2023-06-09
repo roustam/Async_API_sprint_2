@@ -50,7 +50,7 @@ def persons_bulk_data(index: str, persons: list[dict], id_field: str):
             "_source":{
                     'id': person['id'],
                     'full_name': person['full_name'],
-                    'movies': [
+                    'films': [
                         {
                             'id': film['id'],
                             'roles': film['roles']

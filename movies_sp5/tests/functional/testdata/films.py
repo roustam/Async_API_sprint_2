@@ -68,3 +68,40 @@ def random_film():
 
 def random_films(qty: int):
     return [random_film() for _ in range(qty)]
+
+
+def prepared_films():
+
+    return [
+        {
+            'id': str(uuid.uuid4()),
+            'imdb_rating': 8.5,
+            'genres': [
+                {
+                    'id': str(uuid.uuid4()),
+                    'name': 'Action'
+                },
+                {
+                    'id': str(uuid.uuid4()),
+                    'name': 'Sci-Fi'
+                }
+            ],
+            'title': 'The Star',
+            'description': 'New World',
+            'directors_names': ['Alise', 'John'],
+            'actors_names': ['Ann', 'Bob'],
+            'writers_names': ['Ben', 'Howard'],
+            'actors': [
+                {'id': '111', 'name': 'Ann'},
+                {'id': '222', 'name': 'Bob'}
+            ],
+            'writers': [
+                {'id': '333', 'name': 'Ben'},
+                {'id': '444', 'name': 'Howard'}
+            ],
+            'directors': [
+                {'id': '555', 'name': 'Alise'},
+                {'id': '666', 'name': 'John'}
+            ],
+        } for _ in range(15)
+    ]

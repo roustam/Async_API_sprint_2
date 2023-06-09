@@ -17,7 +17,7 @@ class TestFilms:
     @pytest.mark.asyncio
     async def test_films_sorted(self, es_write_data, make_get_request, query_data, order,get_films, es_remove_data):
 
-        await es_write_data(index='films', data=get_films)
+        await es_write_data(index='movies', data=get_films)
         body = await make_get_request('/films', query_data)
         assert len(body['items']) == 10
         assert body['items'] == [
@@ -32,7 +32,7 @@ class TestFilms:
 
         film_for_filtering = random.choice(get_films)
 
-        await es_write_data(index='films',data=get_films)
+        await es_write_data(index='movies',data=get_films)
 
         body = await make_get_request('/films', {'sort': '-imdb_rating',
                                                  'genre': random.choice(film_for_filtering['genres'])['id']})
@@ -43,7 +43,7 @@ class TestFilms:
     @pytest.mark.asyncio
     async def test_film_by_id(self, es_write_data, make_get_request, get_films):
         film_for_get = random.choice(get_films)
-        await es_write_data(index='films', data=get_films)
+        await es_write_data(index='movies', data=get_films)
 
         body = await make_get_request(f'/films/{film_for_get["id"]}')
 

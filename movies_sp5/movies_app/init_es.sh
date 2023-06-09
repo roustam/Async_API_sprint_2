@@ -4,7 +4,7 @@ until curl -sS "http://$ELASTIC_HOST:$ELASTIC_PORT/_cat/health?h=status" | grep 
     sleep 5
 done
 
-curl -XPUT http://$ELASTIC_HOST:$ELASTIC_PORT/movies -H 'Content-Type: application/json' -d'
+curl -XPUT http://$ELASTIC_HOST:$ELASTIC_PORT/films -H 'Content-Type: application/json' -d'
 {
   "settings": {
     "refresh_interval": "1s",
@@ -192,7 +192,7 @@ curl -XPUT http://$ELASTIC_HOST:$ELASTIC_PORT/persons -H 'Content-Type: applicat
           }
         }
       },
-      "movies": {
+      "films": {
         "type": "nested",
         "dynamic": "strict",
         "properties": {

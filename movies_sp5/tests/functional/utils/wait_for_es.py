@@ -10,14 +10,14 @@ from settings import elastic_settings
 def wait_es(es_client: Elasticsearch):
     # проверка на наличие индексов
     genres_index_exists = False
-    movies_index_exists = False
+    films_index_exists = False
     persons_index_exists = False
     while True:
         if es_client.ping():
             genres_index_exists = es_client.indices.exists(index='genres')
-            movies_index_exists = es_client.indices.exists(index='movies')
+            films_index_exists = es_client.indices.exists(index='films')
             persons_index_exists = es_client.indices.exists(index='persons')
-            if genres_index_exists and movies_index_exists and persons_index_exists:
+            if genres_index_exists and films_index_exists and persons_index_exists:
                 break
         time.sleep(1)
     return True

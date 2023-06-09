@@ -47,7 +47,7 @@ class TestPersons:
         films = random_films_extended()
         person_to_request_id = '9758b894-57d7-465d-b657-c5803dd5b7f7'
 
-        await es_write_person_movies(index='films', data=films, id='id')
+        await es_write_person_movies(index='movies', data=films, id='id')
         await asyncio.sleep(2)
 
         status, response_body = await get_api_response(f'/persons/'

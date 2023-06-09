@@ -10,7 +10,7 @@ from redis.asyncio import Redis
 from typing import Iterable, Any
 from .utils.helpers import gen_bulk_data, prepare_bulk_data, get_es_bulk_query
 from .testdata.genres import get_all_genres
-from .testdata.films import random_films
+from .testdata.films import random_films, prepared_films
 from .utils.helpers import gen_bulk_data, persons_bulk_data, person_movies_bulk_data
 from .settings import elastic_settings
 from .settings import app_settings
@@ -29,7 +29,8 @@ async def es_client():
     client = AsyncElasticsearch(hosts=[
             f"http://{elastic_settings.ELASTIC_HOST}:{elastic_settings.ELASTIC_PORT}"],
         verify_certs=False,
-        request_timeout=30
+        request_timeout=30,
+
     )
     yield client
     await client.close()
@@ -54,7 +55,8 @@ async def session():
 async def es_write_data(es_client: AsyncElasticsearch):
     async def inner(index: str, data: list):
         ready_bulk_data = prepare_bulk_data(index=index, data=data)
-        response = await es_client.bulk(index=index, operations=ready_bulk_data)
+
+        response = await es_client.bulk(index=index,refresh=True, operations=ready_bulk_data)
         if not response:
             raise Exception('Ошибка записи данных в Elasticsearch')
     return inner
@@ -88,10 +90,10 @@ async def es_write_persons(es_client: AsyncElasticsearch):
         if response[0] == 0:
             raise Exception('Ошибка записи данных в Elasticsearch')
 
-    yield inner
-
-    await es_client.delete_by_query(
-        index='persons', query={"match_all": {}})
+    return inner
+    #
+    # await es_client.delete_by_query(
+    #     index='persons', query={"match_all": {}})
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -103,7 +105,7 @@ async def make_get_request(session: aiohttp.ClientSession, redis_client: Redis):
                 return await response.json()
             else:
                 raise Exception(response)
-            await redis_client.flushdb()
+            
 
 @pytest_asyncio.fixture
 async def es_write_person_movies(es_client: AsyncElasticsearch):
@@ -118,10 +120,10 @@ async def es_write_person_movies(es_client: AsyncElasticsearch):
         if response[0] == 0:
             raise Exception('Ошибка записи данных в Elasticsearch')
 
-    yield inner
+    return inner
 
-    await es_client.delete_by_query(
-        index='movies', query={"match_all": {}})
+    # await es_client.delete_by_query(
+    #     index='movies', query={"match_all": {}})
 
 
 @pytest_asyncio.fixture
@@ -165,45 +167,12 @@ async def get_api_response(
             else:
                 raise Exception(response)
 
-    yield inner
-    await redis_client.flushdb()
+    return inner
 
 @pytest.fixture(scope='session')
 def get_films():
-    return random_films(10)
+    return random_films(3)
 
 @pytest.fixture(scope='session')
-def es_data():
-    return [
-        {
-            'id': str(uuid.uuid4()),
-            'imdb_rating': 8.5,
-            'genres': [
-                {
-                    'id': str(uuid.uuid4()),
-                    'name': 'Action'
-                },
-                {
-                    'id': str(uuid.uuid4()),
-                    'name': 'Sci-Fi'
-                }
-            ],
-            'title': 'The Star',
-            'description': 'New World',
-            'directors_names': ['Alise', 'John'],
-            'actors_names': ['Ann', 'Bob'],
-            'writers_names': ['Ben', 'Howard'],
-            'actors': [
-                {'id': '111', 'name': 'Ann'},
-                {'id': '222', 'name': 'Bob'}
-            ],
-            'writers': [
-                {'id': '333', 'name': 'Ben'},
-                {'id': '444', 'name': 'Howard'}
-            ],
-            'directors': [
-                {'id': '555', 'name': 'Alise'},
-                {'id': '666', 'name': 'John'}
-            ],
-        } for _ in range(15)
-    ]
+def search_film_data():
+    return random_films(10)
