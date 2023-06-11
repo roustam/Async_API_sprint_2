@@ -60,21 +60,15 @@ class TestPersons:
                                       f'{person_to_request_id}/film')
 
         expected_response = [
-            {
-                "uuid": "37c6cd37-1222-4470-9221-3170367d134b",
-                "title": "Star Trek III: The Search for Spock",
-                "imdb_rating": 6.7
-            },
-            {
-                "uuid": "3d825f60-9fff-4dfe-b294-1a45fa1e115d",
-                "title": "Star Wars: Episode IV - A New Hope",
-                "imdb_rating": 8.6
-            },
-            {
-                "uuid": "d1e24e68-1c00-4d81-8dff-9d126c1a6a5e",
-                "title": "Star Trek: The Next Generation - A Final Unity",
-                "imdb_rating": 7.9
-            }
+            {'uuid': '37c6cd37-1222-4470-9221-3170367d134b', 
+            'title': 'Star Trek III: The Search for Spock', 
+            'imdb_rating': 6.7},
+            {'uuid': '3d825f60-9fff-4dfe-b294-1a45fa1e115d', 
+            'title': 'Star Wars: Episode IV - A New Hope', 
+            'imdb_rating': 8.6},
+            {'uuid': 'd1e24e68-1c00-4d81-8dff-9d126c1a6a5e', 
+            'title': 'Star Trek: The Next Generation - A Final Unity', 
+            'imdb_rating': 7.9}, 
         ]
 
         assert status == 200
