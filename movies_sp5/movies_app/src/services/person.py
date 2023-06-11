@@ -37,7 +37,7 @@ class PersonService(ServiceAbstract):
 
     async def _search_person_films_in_elastic(self, person_id, page_number: int | None = 1, page_size: int | None = 10) -> dict:
         return await self.elastic.search_by_query_with_pagination(
-            index='movies',
+            index='films',
             body={
                 'query': {
                     'bool': {

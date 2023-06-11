@@ -38,7 +38,7 @@ async def startup():
 
 async def init_es(elastic, es_settings):
     '''Creating indices if they not exist'''
-    for idx in ['genres', 'movies', 'persons']:
+    for idx in ['genres', 'films', 'persons']:
         res = await elastic.indices.exists(index=idx,)
         if not res:
             idx_status_creation = await elastic.indices.create(
@@ -46,10 +46,6 @@ async def init_es(elastic, es_settings):
                 ignore=400,
                 settings=es_settings.settings[idx],
                 mappings=es_settings.mappings[idx])
-
-
-
-
 
 
 @app.on_event("shutdown")

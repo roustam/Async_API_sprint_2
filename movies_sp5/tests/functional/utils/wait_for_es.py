@@ -5,22 +5,29 @@ from elasticsearch import Elasticsearch, NotFoundError
 
 from settings import elastic_settings
 
-
+INDICES = {'genres':False,'films':False, 'persons': False}
 
 def wait_es(es_client: Elasticsearch):
     # проверка на наличие индексов
-    genres_index_exists = False
-    movies_index_exists = False
-    persons_index_exists = False
+    
     while True:
         if es_client.ping():
-            genres_index_exists = es_client.indices.exists(index='genres')
-            movies_index_exists = es_client.indices.exists(index='movies')
-            persons_index_exists = es_client.indices.exists(index='persons')
-            if genres_index_exists and movies_index_exists and persons_index_exists:
+            if check_indices():
                 break
         time.sleep(1)
     return True
+
+def check_indices():
+    for index_name in INDICES.keys():
+        res = es_client.indices.exists(index=index_name)
+        if res:
+            INDICES[index_name] = True
+
+    if [res for res in INDICES.values()] == [True,True,True]:
+        return True
+    else:
+        return False
+
 
 if __name__ == '__main__':
     elasticsearch_hosts = [f"http://{elastic_settings.ELASTIC_HOST}:{elastic_settings.ELASTIC_PORT}"]

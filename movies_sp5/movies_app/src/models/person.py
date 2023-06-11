@@ -7,7 +7,7 @@ class PersonFilmDetails(BaseOrjsonModel):
     imdb_rating: float
 
 
-class PersonMovie(BaseOrjsonModel):
+class PersonFilm(BaseOrjsonModel):
     id: str
     roles: list[str]
 
@@ -15,4 +15,4 @@ class PersonMovie(BaseOrjsonModel):
 class Person(BaseOrjsonModel):
     id: str
     full_name: str
-    movies: list[PersonMovie]
+    films: list[PersonFilm]

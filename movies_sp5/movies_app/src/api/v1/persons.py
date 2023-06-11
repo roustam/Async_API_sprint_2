@@ -51,8 +51,8 @@ async def search_persons(
                 uuid=UUID(person.id),
                 full_name=person.full_name,
                 films=[
-                    PersonFilm(uuid=UUID(movie.id), roles=movie.roles)
-                    for movie in person.movies
+                    PersonFilm(uuid=UUID(film.id), roles=film.roles)
+                    for film in person.films
                 ],
             )
             for person in persons
@@ -81,8 +81,8 @@ async def person(
         uuid=UUID(person.id),
         full_name=person.full_name,
         films=[
-            PersonFilm(uuid=UUID(movie.id), roles=movie.roles)
-            for movie in person.movies
+            PersonFilm(uuid=UUID(film.id), roles=film.roles)
+            for film in person.films
         ],
     )
 

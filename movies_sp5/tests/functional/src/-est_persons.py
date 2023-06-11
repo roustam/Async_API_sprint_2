@@ -19,10 +19,7 @@ def choose_one_person(persons):
 
 class TestPersons:
     @pytest.mark.asyncio
-    async def test_person_by_id(self, es_write_persons, get_api_response,
-                                clean_elasticsearch, flush_cache):
-        await flush_cache()
-        await clean_elasticsearch(index='films')
+    async def test_person_by_id(self, es_write_persons, get_api_response):
         persons = create_persons_list()
 
         await es_write_persons(index='persons', data=persons, id='id')
@@ -46,14 +43,11 @@ class TestPersons:
 
     @pytest.mark.asyncio
     async def test_all_films_by_person(self, es_write_person_movies,
-            get_api_response,clean_elasticsearch, flush_cache):
-        
-        await flush_cache()
-        await clean_elasticsearch(index='films')
+            get_api_response,):
         films = random_films_extended()
         person_to_request_id = '9758b894-57d7-465d-b657-c5803dd5b7f7'
 
-        await es_write_person_movies(index='films', data=films, id='id')
+        await es_write_person_movies(index='movies', data=films, id='id')
         await asyncio.sleep(2)
 
         status, response_body = await get_api_response(f'/persons/'
@@ -79,8 +73,3 @@ class TestPersons:
 
         assert status == 200
         assert response_body['items'] == expected_response
-
-    @pytest.mark.asyncio
-    async def test_clean_persons(self, clean_elasticsearch, flush_cache):
-        await flush_cache()
-        await clean_elasticsearch(index='persons')
