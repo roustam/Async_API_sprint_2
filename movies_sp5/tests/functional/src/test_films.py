@@ -15,11 +15,15 @@ class TestFilms:
         ] 
     )
     @pytest.mark.asyncio
-    async def test_films_sorted(self, es_write_data, make_get_request, query_data, order,get_films, es_remove_data):
-
+    async def test_films_sorted(self, es_write_data, make_get_request,flush_cache,
+                                query_data, order,get_films, clean_elasticsearch):
+        await flush_cache()
+        await clean_elasticsearch(index='films')
         await es_write_data(index='films', data=get_films)
         body = await make_get_request('/films', query_data)
-        assert len(body['items']) == 10
+        redis_cache = await make_get_request('/films', query_data)
+        assert body == redis_cache
+        assert len(body['items']) == len(get_films)
         assert body['items'] == [
             {'uuid': film['id'], 'title': film['title'], 'imdb_rating': film['imdb_rating']}
             for film
@@ -28,8 +32,10 @@ class TestFilms:
 
     @pytest.mark.asyncio
     # @pytest.mark.skip('Не работает фильтрация по жанрам')
-    async def test_films_filtered(self, es_write_data, make_get_request, get_films):
-
+    async def test_films_filtered(self, es_write_data, make_get_request, get_films,
+                                  flush_cache,clean_elasticsearch):
+        await flush_cache()
+        await clean_elasticsearch(index='films')
         film_for_filtering = random.choice(get_films)
 
         await es_write_data(index='films',data=get_films)
@@ -41,7 +47,10 @@ class TestFilms:
                                   'imdb_rating': film_for_filtering['imdb_rating']}]
 
     @pytest.mark.asyncio
-    async def test_film_by_id(self, es_write_data, make_get_request, get_films):
+    async def test_film_by_id(self, es_write_data, make_get_request, get_films,
+                              flush_cache,clean_elasticsearch):
+        await flush_cache()
+        await clean_elasticsearch(index='films')
         film_for_get = random.choice(get_films)
         await es_write_data(index='films', data=get_films)
 

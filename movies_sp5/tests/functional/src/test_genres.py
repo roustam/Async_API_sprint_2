@@ -4,9 +4,8 @@ from testdata.genres import get_all_genres
 
 class TestGenres:
 
-
     @pytest.mark.parametrize(
-        'query_data, expected_answer',
+        'query_data',
         [
             (
                     {'page_number':1,'page_size':5},
@@ -14,34 +13,37 @@ class TestGenres:
             ),
             (
                     {'page_number': 2, 'page_size': 5},
-                    {'length': 5}
             ),
             (
                     {'page_number': 1, 'page_size': 10},
-                    {'length': 10}
             )
         ]
     )
     @pytest.mark.asyncio
     async def test_genres(self, es_write_data,make_get_request, query_data,
-                          expected_answer, get_genres, flush_cache):
+                          get_genres, flush_cache,clean_elasticsearch):
+        
+        await clean_elasticsearch('genres')
         await flush_cache()
         await es_write_data(index='genres', data=get_genres)
+
         body = await make_get_request('/genres', query_data)
 
         cached_body = await make_get_request('/genres', query_data)
         assert body['items'] == cached_body['items']
         genre_items = [{'uuid':genre['id'], 'name':genre['name']} for genre in get_genres]
-        print('--->', genre_items[:(query_data['page_number'] * query_data['page_size'])])
 
         assert body['items'] == genre_items[
             query_data['page_number'] * query_data['page_size'] - query_data['page_size']
             :query_data['page_number'] * query_data['page_size']]
+        
 
 
     @pytest.mark.asyncio
     async def test_genres_by_id(self, es_write_data, make_get_request,
-                                get_genres, flush_cache, es_remove_data):
+                                get_genres, flush_cache, clean_elasticsearch):
+        
+        await clean_elasticsearch('genres')
         await flush_cache()
         await es_write_data(index='genres', data=get_genres)
 
@@ -58,3 +60,8 @@ class TestGenres:
 
         redis_flush = await flush_cache()
         assert redis_flush == True
+
+    @pytest.mark.asyncio
+    async def test_clean_es(self, clean_elasticsearch):
+        res = await clean_elasticsearch('genres')
+        assert res['failures'] == []

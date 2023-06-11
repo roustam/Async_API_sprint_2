@@ -55,8 +55,8 @@ def random_film():
         'id': random_id(),
         'imdb_rating': random_rating(),
         'genres': random_genres(1, 3),
-        'title': random_title(),
-        'description': random_description(),
+        'title': add_search_text(random_title()),
+        'description': add_search_text(random_description()),
         'actors_names': [actor['name'] for actor in actors],
         'writers_names': [writer['name'] for writer in writers],
         'directors_names': [director['name'] for director in directors],
@@ -69,6 +69,8 @@ def random_film():
 def random_films(qty: int):
     return [random_film() for _ in range(qty)]
 
+def add_search_text(film_name):
+    return film_name + 'The star'
 
 def prepared_films():
 

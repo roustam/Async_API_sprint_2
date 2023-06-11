@@ -50,13 +50,26 @@ async def session():
     yield session
     await session.close()
 
+@pytest_asyncio.fixture(scope='session')
+async def clean_elasticsearch(es_client: AsyncElasticsearch):
+    async def inner(index: str):
+        res = await es_client.delete_by_query(index=index,
+                                        query={"match_all": {}},
+                                        requests_per_second=3,
+                                        wait_for_completion=True
+                                        )
+        return res
+
+
+    return inner
+
 
 @pytest_asyncio.fixture(scope='session')
 async def es_write_data(es_client: AsyncElasticsearch):
     async def inner(index: str, data: list):
         ready_bulk_data = prepare_bulk_data(index=index, data=data)
-
-        response = await es_client.bulk(index=index,refresh=True, operations=ready_bulk_data)
+        response = await es_client.bulk(index=index,refresh=True,
+                                        operations=ready_bulk_data)
         if not response:
             raise Exception('Ошибка записи данных в Elasticsearch')
     return inner
@@ -91,9 +104,7 @@ async def es_write_persons(es_client: AsyncElasticsearch):
             raise Exception('Ошибка записи данных в Elasticsearch')
 
     return inner
-    #
-    # await es_client.delete_by_query(
-    #     index='persons', query={"match_all": {}})
+
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -122,8 +133,6 @@ async def es_write_person_movies(es_client: AsyncElasticsearch):
 
     return inner
 
-    # await es_client.delete_by_query(
-    #     index='movies', query={"match_all": {}})
 
 
 @pytest_asyncio.fixture
