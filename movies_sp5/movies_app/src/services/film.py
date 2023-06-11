@@ -15,7 +15,7 @@ class FilmService(ServiceAbstract):
         key = make_redis_key('film', film_id)
         film = await self.redis.get_by_key(key)
         if not film:
-            film = await self.elastic.get_by_id('movies', film_id)
+            film = await self.elastic.get_by_id('films', film_id)
             await self.redis.save_by_key(key, film)
         return Film(**film['_source']) if film else None
 
@@ -60,11 +60,11 @@ class FilmService(ServiceAbstract):
                 },
             }
             
-        return await self.elastic.search_by_query_with_pagination(index='movies', body=body, page_number=page_number, page_size=page_size)
+        return await self.elastic.search_by_query_with_pagination(index='films', body=body, page_number=page_number, page_size=page_size)
 
     async def _search_films_in_elastic(self, query: str, page_number: int | None = 1, page_size: int | None = 10) -> dict:
         return await self.elastic.search_by_query_with_pagination(
-            index='movies',
+            index='films',
             body={
                 'query': {
                     'multi_match': {

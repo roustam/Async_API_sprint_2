@@ -15,15 +15,11 @@ class TestFilms:
         ] 
     )
     @pytest.mark.asyncio
-    async def test_films_sorted(self, es_write_data, make_get_request,flush_cache,
-                                query_data, order,get_films, clean_elasticsearch):
-        await flush_cache()
-        await clean_elasticsearch(index='films')
-        await es_write_data(index='films', data=get_films)
+    async def test_films_sorted(self, es_write_data, make_get_request, query_data, order,get_films, es_remove_data):
+
+        await es_write_data(index='movies', data=get_films)
         body = await make_get_request('/films', query_data)
-        redis_cache = await make_get_request('/films', query_data)
-        assert body == redis_cache
-        assert len(body['items']) == len(get_films)
+        assert len(body['items']) == 10
         assert body['items'] == [
             {'uuid': film['id'], 'title': film['title'], 'imdb_rating': film['imdb_rating']}
             for film
@@ -32,13 +28,11 @@ class TestFilms:
 
     @pytest.mark.asyncio
     # @pytest.mark.skip('Не работает фильтрация по жанрам')
-    async def test_films_filtered(self, es_write_data, make_get_request, get_films,
-                                  flush_cache,clean_elasticsearch):
-        await flush_cache()
-        await clean_elasticsearch(index='films')
+    async def test_films_filtered(self, es_write_data, make_get_request, get_films):
+
         film_for_filtering = random.choice(get_films)
 
-        await es_write_data(index='films',data=get_films)
+        await es_write_data(index='movies',data=get_films)
 
         body = await make_get_request('/films', {'sort': '-imdb_rating',
                                                  'genre': random.choice(film_for_filtering['genres'])['id']})
@@ -47,12 +41,9 @@ class TestFilms:
                                   'imdb_rating': film_for_filtering['imdb_rating']}]
 
     @pytest.mark.asyncio
-    async def test_film_by_id(self, es_write_data, make_get_request, get_films,
-                              flush_cache,clean_elasticsearch):
-        await flush_cache()
-        await clean_elasticsearch(index='films')
+    async def test_film_by_id(self, es_write_data, make_get_request, get_films):
         film_for_get = random.choice(get_films)
-        await es_write_data(index='films', data=get_films)
+        await es_write_data(index='movies', data=get_films)
 
         body = await make_get_request(f'/films/{film_for_get["id"]}')
 

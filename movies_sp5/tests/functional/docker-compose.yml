@@ -56,4 +56,4 @@ services:
       && python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
       && python3 /tests/functional/utils/wait_for_api.py
-      && pytest /tests/functional/src"
+      && pytest /tests/functional/src  -o log_cli=true -vv"

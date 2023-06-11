@@ -57,7 +57,7 @@ class ElasticSettings(BaseSettings):
           }
         }
       },
-      'movies': {
+      'films': {
       "refresh_interval": "1s",
       "analysis": {
         "filter": {
@@ -156,7 +156,7 @@ class ElasticSettings(BaseSettings):
             }
           }
       },
-      'movies': {
+      'films': {
         "dynamic": "strict",
         "properties": {
           "id": {
@@ -258,7 +258,7 @@ class ElasticSettings(BaseSettings):
               }
             }
           },
-          "movies": {
+          "films": {
             "type": "nested",
             "dynamic": "strict",
             "properties": {
