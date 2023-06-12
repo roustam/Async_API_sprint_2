@@ -5,8 +5,7 @@ from fastapi import Depends
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.person import Person, PersonFilmDetails
-from db.elastic import ElasticClient
-from db.redis import RedisClient
+from db.abstract import AsyncDataStorage, AsyncCacheStorage
 from services.common import make_redis_key, ServiceAbstract
 
 
@@ -88,7 +87,7 @@ class PersonService(ServiceAbstract):
 
 @lru_cache()
 def get_person_service(
-        redis: RedisClient = Depends(get_redis),
-        elastic: ElasticClient = Depends(get_elastic),
+        redis: AsyncCacheStorage = Depends(get_redis),
+        elastic: AsyncDataStorage = Depends(get_elastic),
 ) -> PersonService:
     return PersonService(redis, elastic)
