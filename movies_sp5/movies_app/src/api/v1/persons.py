@@ -1,12 +1,11 @@
 from http import HTTPStatus
-from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import UUID4, BaseModel
 from api.v1.messages import PERSON_NOT_FOUND
 
-from api.v1.common import Page
+from api.v1.common import Page, Pagination
 
 from services.person import PersonService, get_person_service
 
@@ -39,11 +38,10 @@ class PersonFilmDetails(BaseModel):
 )
 async def search_persons(
     query: str,
-    page_number: Annotated[int, Query(description='Pagination page number', ge=1)] = 1,
-    page_size: Annotated[int, Query(description='Pagination page size', ge=1)] = 10,
+    pagination: Pagination = Depends(),
     person_service: PersonService = Depends(get_person_service),
 ):
-    persons = await person_service.search(query, page_number=page_number, page_size=page_size)
+    persons = await person_service.search(query, page_number=pagination.page_number, page_size=pagination.page_size)
 
     return Page[Person](
         items=[
@@ -57,8 +55,8 @@ async def search_persons(
             )
             for person in persons
         ],
-        page=page_number,
-        size=page_size,
+        page=pagination.page_number,
+        size=pagination.page_size,
     )
 
 
@@ -95,11 +93,10 @@ async def person(
 )
 async def person_films_details(
     person_id: UUID4,
-    page_number: Annotated[int, Query(description='Pagination page number', ge=1)] = 1,
-    page_size: Annotated[int, Query(description='Pagination page size', ge=1)] = 10,
+    pagination: Pagination = Depends(),
     person_service: PersonService = Depends(get_person_service),
 ):
-    films = await person_service.get_films_by_person_id(person_id, page_number=page_number, page_size=page_size)
+    films = await person_service.get_films_by_person_id(person_id, page_number=pagination.page_number, page_size=pagination.page_size)
 
     return Page[PersonFilmDetails](
         items=[
@@ -110,6 +107,6 @@ async def person_films_details(
             )
             for film in films
         ],
-        page=page_number,
-        size=page_size,
+        page=pagination.page_number,
+        size=pagination.page_size,
     )

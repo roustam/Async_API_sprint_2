@@ -1,11 +1,10 @@
 from http import HTTPStatus
-from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import UUID4, BaseModel
 from api.v1.messages import FILM_NOT_FOUND
-from api.v1.common import Page
+from api.v1.common import Page, Pagination
 
 from services.film import FilmService, get_film_service
 
@@ -42,10 +41,9 @@ class Film(BaseModel):
 
 @router.get("/", response_model=Page[Film], summary='Get sorted films', description='Returns films sorted by specified key and filtered by genre')
 async def films(
+    pagination: Pagination = Depends(),
     sort: str = '-imdb_rating',
     genre: str | None = None,
-    page_number: Annotated[int, Query(description='Pagination page number', ge=1)] = 1,
-    page_size: Annotated[int, Query(description='Pagination page size', ge=1)] = 10,
     film_service: FilmService = Depends(get_film_service),
 ):
     """
@@ -53,37 +51,36 @@ async def films(
     sort = '-imdb_rating' - desc sort
     genre parameter takes genre id
     """
-    films = await film_service.get(sort=sort, genre_id=genre, page_number=page_number, page_size=page_size)
+    films = await film_service.get(sort=sort, genre_id=genre, page_number=pagination.page_number, page_size=pagination.page_size)
 
     return Page[Film](
         items=[
             Film(uuid=UUID(film.id), title=film.title, imdb_rating=film.imdb_rating)
             for film in films
         ],
-        page=page_number,
-        size=page_size,
+        page=pagination.page_number,
+        size=pagination.page_size,
     )
 
 
 @router.get("/search", response_model=Page[Film], summary='Search films', description='Returns films according to query')
 async def search_films(
     query: str,
-    page_number: Annotated[int, Query(description='Pagination page number', ge=1)] = 1,
-    page_size: Annotated[int, Query(description='Pagination page size', ge=1)] = 10,
+    pagination: Pagination = Depends(),
     film_service: FilmService = Depends(get_film_service),
 ):
     """
     Search by query in films title, description, genres, person names
     """
-    films = await film_service.search(query=query, page_number=page_number, page_size=page_size)
+    films = await film_service.search(query=query, page_number=pagination.page_number, page_size=pagination.page_size)
 
     return Page[Film](
         items=[
             Film(uuid=UUID(film.id), title=film.title, imdb_rating=film.imdb_rating)
             for film in films
         ],
-        page=page_number,
-        size=page_size,
+        page=pagination.page_number,
+        size=pagination.page_size,
     )
 
 
