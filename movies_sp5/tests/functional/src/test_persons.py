@@ -1,8 +1,8 @@
 import asyncio
+import operator
+import random
 
 import pytest
-
-import random
 
 from ..testdata.persons import random_films_extended, random_persons
 
@@ -21,8 +21,9 @@ class TestPersons:
     @pytest.mark.asyncio
     async def test_person_by_id(self, es_write_persons, get_api_response,
                                 clean_elasticsearch, flush_cache):
-        await flush_cache()
+        
         await clean_elasticsearch(index='films')
+        await flush_cache()
         persons = create_persons_list()
 
         await es_write_persons(index='persons', data=persons, id='id')
@@ -45,20 +46,11 @@ class TestPersons:
         assert response_body['films'] == person_to_request_movies
 
     @pytest.mark.asyncio
-    async def test_all_films_by_person(self, es_write_person_movies,
+    async def test_all_films_by_person(self, es_write_data,
             get_api_response,clean_elasticsearch, flush_cache):
         
-        await flush_cache()
-        await clean_elasticsearch(index='films')
         films = random_films_extended()
         person_to_request_id = '9758b894-57d7-465d-b657-c5803dd5b7f7'
-
-        await es_write_person_movies(index='films', data=films, id='id')
-        await asyncio.sleep(2)
-
-        status, response_body = await get_api_response(f'/persons/'
-                                      f'{person_to_request_id}/film')
-
         expected_response = [
             {'uuid': '37c6cd37-1222-4470-9221-3170367d134b', 
             'title': 'Star Trek III: The Search for Spock', 
@@ -70,11 +62,22 @@ class TestPersons:
             'title': 'Star Trek: The Next Generation - A Final Unity', 
             'imdb_rating': 7.9}, 
         ]
+        
+        await flush_cache()
+        await clean_elasticsearch(index='films')
+        await es_write_data(index='films', data=films)
 
+        status, response_body = await get_api_response(f'/persons/'
+                                      f'{person_to_request_id}/film')
+
+        
         assert status == 200
-        assert response_body['items'] == expected_response
+        assert response_body['items'] == sorted(expected_response, key=operator.itemgetter('uuid'))
 
     @pytest.mark.asyncio
     async def test_clean_persons(self, clean_elasticsearch, flush_cache):
         await flush_cache()
-        await clean_elasticsearch(index='persons')
+        
+        res = await clean_elasticsearch(index='persons')
+
+        assert res['failures'] == []

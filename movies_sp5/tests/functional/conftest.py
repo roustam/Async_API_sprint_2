@@ -1,8 +1,8 @@
 import asyncio
+
 import aiohttp
 import pytest
 import pytest_asyncio
-
 
 pytest_plugins = ['es_client', 'redis_client', 'service_client']
 
