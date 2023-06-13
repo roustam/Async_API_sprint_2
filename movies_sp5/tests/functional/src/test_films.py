@@ -1,8 +1,6 @@
 import random
-import time
 
 import pytest
-
 from testdata.films import random_films
 
 
@@ -20,8 +18,10 @@ class TestFilms:
         await flush_cache()
         await clean_elasticsearch(index='films')
         await es_write_data(index='films', data=get_films)
+
         body = await make_get_request('/films', query_data)
         redis_cache = await make_get_request('/films', query_data)
+
         assert body == redis_cache
         assert len(body['items']) == len(get_films)
         assert body['items'] == [
@@ -31,15 +31,13 @@ class TestFilms:
         ]
 
     @pytest.mark.asyncio
-    # @pytest.mark.skip('Не работает фильтрация по жанрам')
     async def test_films_filtered(self, es_write_data, make_get_request, get_films,
                                   flush_cache,clean_elasticsearch):
         await flush_cache()
         await clean_elasticsearch(index='films')
-        film_for_filtering = random.choice(get_films)
-
         await es_write_data(index='films',data=get_films)
 
+        film_for_filtering = random.choice(get_films)
         body = await make_get_request('/films', {'sort': '-imdb_rating',
                                                  'genre': random.choice(film_for_filtering['genres'])['id']})
 
@@ -51,9 +49,9 @@ class TestFilms:
                               flush_cache,clean_elasticsearch):
         await flush_cache()
         await clean_elasticsearch(index='films')
-        film_for_get = random.choice(get_films)
         await es_write_data(index='films', data=get_films)
 
+        film_for_get = random.choice(get_films)
         body = await make_get_request(f'/films/{film_for_get["id"]}')
 
         assert body == {

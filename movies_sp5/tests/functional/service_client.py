@@ -1,11 +1,10 @@
 import aiohttp
 import pytest
+import pytest_asyncio
 from redis import Redis
+from settings import app_settings
 from testdata.films import random_films
 from testdata.genres import get_all_genres
-import pytest_asyncio
-
-from settings import app_settings
 
 
 @pytest_asyncio.fixture

@@ -1,10 +1,9 @@
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.helpers import async_bulk
-
-from utils.helpers import person_movies_bulk_data, persons_bulk_data, prepare_bulk_data
-
 from settings import elastic_settings
+from utils.helpers import (person_movies_bulk_data, persons_bulk_data,
+                           prepare_bulk_data)
 
 
 @pytest_asyncio.fixture(scope='session')

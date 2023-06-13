@@ -6,6 +6,7 @@ services:
     image: movies-app-image
     container_name: movies_app_tests
     depends_on:
+      - movies_elastic
       - movies_redis
     environment:
       - REDIS_HOST=${REDIS_HOST}
@@ -27,16 +28,14 @@ services:
       ingest.geoip.downloader.enabled: "false"
     volumes:
       - ./../../movies_elastic/esdata_tests:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
+
 
   movies_redis:
     build: ./../../movies_redis
     container_name: movies_redis_tests
     volumes:
       - ./../../movies_redis/redis.conf:/usr/local/etc/redis/redis.conf
-    ports:
-      - "6379:6379"
+
 
   tests:
     image: movies-app-image
@@ -50,6 +49,9 @@ services:
       - APP_PORT=${APP_PORT}
     volumes:
       - ./.:/tests/functional/
+    depends_on:
+      - movies_elastic
+      - movies_redis
     entrypoint: >
       sh -c "pip install -r /tests/functional/requirements.txt
       && export PYTHONPATH=$PYTHONPATH:/tests/functional

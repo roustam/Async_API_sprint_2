@@ -1,5 +1,4 @@
 import pytest
-from testdata.genres import get_all_genres
 
 
 class TestGenres:
@@ -15,13 +14,12 @@ class TestGenres:
         await clean_elasticsearch('genres')
         await flush_cache()
         await es_write_data(index='genres', data=get_genres)
-
-        body = await make_get_request('/genres', query_data)
-
-        cached_body = await make_get_request('/genres', query_data)
-        assert body['items'] == cached_body['items']
+        
         genre_items = [{'uuid':genre['id'], 'name':genre['name']} for genre in get_genres]
+        body = await make_get_request('/genres', query_data)
+        cached_body = await make_get_request('/genres', query_data)
 
+        assert body['items'] == cached_body['items']
         assert body['items'] == genre_items[
             query_data['page_number'] * query_data['page_size'] - query_data['page_size']
             :query_data['page_number'] * query_data['page_size']]
@@ -32,11 +30,12 @@ class TestGenres:
     async def test_genres_by_id(self, es_write_data, make_get_request,
                                 get_genres, flush_cache, clean_elasticsearch):
         
+        get_genres_length = len(get_genres)
+
         await clean_elasticsearch('genres')
         await flush_cache()
         await es_write_data(index='genres', data=get_genres)
 
-        get_genres_length = len(get_genres)
         for genre_record in [get_genres[0], get_genres[-1], get_genres[get_genres_length // 2]]:
             request_url = f'/genres/{genre_record["id"]}'
             body_es = await make_get_request(request_url)
@@ -52,5 +51,7 @@ class TestGenres:
 
     @pytest.mark.asyncio
     async def test_clean_es(self, clean_elasticsearch):
+
         res = await clean_elasticsearch('genres')
+        
         assert res['failures'] == []

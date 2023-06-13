@@ -1,8 +1,10 @@
+import time
+
 import urllib3
+from settings import app_settings
 from urllib3.exceptions import MaxRetryError
 from urllib3.util import Retry, Timeout
-import time
-from settings import app_settings
+
 
 def wait_for_api(url):
     retries = Retry(connect=100)

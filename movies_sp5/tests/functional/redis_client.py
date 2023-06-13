@@ -1,6 +1,5 @@
-from redis import Redis
 import pytest_asyncio
-
+from redis import Redis
 from settings import redis_settings
 
 
@@ -9,7 +8,7 @@ async def redis_client():
     client = Redis(
         host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
     yield client
-    await client.close()
+    client.close()
 
 
 @pytest_asyncio.fixture(scope='session')

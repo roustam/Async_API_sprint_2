@@ -5,7 +5,6 @@ from faker import Faker
 
 from .genres import GENRES
 
-
 faker = Faker()
 
 

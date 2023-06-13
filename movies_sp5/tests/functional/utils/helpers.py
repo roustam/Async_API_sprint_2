@@ -1,6 +1,5 @@
 import json
 from typing import Iterable
-
 from uuid import uuid4
 
 

@@ -1,15 +1,15 @@
 import asyncio
-import time
 import logging
+import time
 import traceback
-from elasticsearch import Elasticsearch
 
+from elasticsearch import Elasticsearch
 from settings import elastic_settings
 
 INDICES = {'genres':False,'films':False, 'persons': False}
 
 def wait_es(es_client: Elasticsearch, 
-            start_sleep_time=0.1, factor=2, border_sleep_time=10.0):
+            start_sleep_time=0.1, factor=2, border_sleep_time=25.0):
     n = 0
     t = start_sleep_time
     while True:

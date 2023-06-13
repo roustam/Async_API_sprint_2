@@ -1,12 +1,13 @@
 import asyncio
 import logging
-from redis.asyncio import Redis
 import traceback
 
+from redis.asyncio import Redis
 from settings import redis_settings
 
+
 async def wait_redis(redis_client: Redis, 
-                     start_sleep_time=0.1, factor=2, border_sleep_time=10.0):
+                     start_sleep_time=0.1, factor=2, border_sleep_time=25.0):
     n = 0
     t = start_sleep_time
     while True:
