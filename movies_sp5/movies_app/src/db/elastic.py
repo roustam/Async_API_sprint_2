@@ -1,5 +1,7 @@
 from elasticsearch import AsyncElasticsearch, NotFoundError
 
+from db.abstract import AsyncDataStorage
+
 es: AsyncElasticsearch | None = None
 
 
@@ -8,7 +10,7 @@ async def get_elastic() -> 'ElasticClient':
     return ElasticClient()
 
 
-class ElasticClient:
+class ElasticClient(AsyncDataStorage):
     async def get_by_id(self, index: str, _id: str) -> dict | None:
         try:
             return await es.get(index=index, id=_id)
